@@ -4,11 +4,12 @@ namespace App\Http\Api\V1\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Domains\Users\Requests\StoreUserRequest;
+use App\Domains\Users\Requests\UpdateUserRequest;
 use App\Domains\Users\DTOs\CreateUserDTO;
 use App\Domains\Users\Actions\CreateUserAction;
 use App\Domains\Users\Resources\UserResource;
 use App\Domains\Users\Repositories\UserRepository;
-
+ 
 class UserController extends Controller
 {
     public function index(UserRepository $repository)
