@@ -14,6 +14,7 @@ import {
   PlugInIcon,
   TableIcon,
   UserCircleIcon,
+  UserIcon,
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 import SidebarWidget from "./SidebarWidget";
@@ -40,6 +41,12 @@ const navItems: NavItem[] = [
     icon: <UserCircleIcon />,
     name: "User Profile",
     path: "/profile",
+  },
+  {
+    icon: <UserIcon />,
+    name: "Users",
+    path: "/users",
+    subItems: [{ name: "All Users", path: "/users", pro: false }, { name: "Add User", path: "/add-user", pro: false }],
   },
   {
     name: "Forms",
