@@ -31,8 +31,29 @@ const Button: React.FC<ButtonProps> = ({
   const variantClasses = {
     primary:
       "bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600 disabled:bg-brand-300",
+    danger:
+      "bg-red-500 text-white shadow-theme-xs hover:bg-red-600 disabled:bg-red-300",
+    warning:
+      "bg-yellow-500 text-white shadow-theme-xs hover:bg-yellow-600 disabled:bg-yellow-300",
+    success:
+      "bg-green-500 text-white shadow-theme-xs hover:bg-green-600 disabled:bg-green-300",
+    info:
+      "bg-blue-500 text-white shadow-theme-xs hover:bg-blue-600 disabled:bg-blue-300",
+    light:
+      "bg-gray-500 text-white shadow-theme-xs hover:bg-gray-600 disabled:bg-gray-300",
+    dark: "bg-gray-800 text-white shadow-theme-xs hover:bg-gray-900 disabled:bg-gray-700",  
     outline:
       "bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/[0.03] dark:hover:text-gray-300",
+    ghost:
+      "bg-transparent text-gray-700 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-300",
+    link:
+      "bg-transparent text-gray-700 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-300",
+    text:
+      "bg-transparent text-gray-700 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-300",
+    disabled: "cursor-not-allowed opacity-50",
+    loading: "cursor-not-allowed opacity-50",
+    icon: "p-2",
+    rounded: "rounded-full",
   };
 
   return (

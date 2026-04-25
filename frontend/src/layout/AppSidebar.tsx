@@ -46,7 +46,7 @@ const navItems: NavItem[] = [
     icon: <UserIcon />,
     name: "Users",
     path: "/users",
-    subItems: [{ name: "All Users", path: "/users", pro: false }, { name: "Add User", path: "/add-user", pro: false }],
+    subItems: [{ name: "All Users", path: "/users", pro: false }, { name: "Add User", path: "/users/create", pro: false }],
   },
   {
     name: "Forms",

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getUsers } from "../api/userApi";
+import { getUsers, deleteUser } from "../api/userApi";
 import { User } from "../types/user.types";
 
 import PageBreadcrumb from "../../../components/common/PageBreadCrumb";
@@ -13,13 +13,16 @@ import {
   TableHeader,
   TableRow,
 } from "../../../components/ui/table";
+import Button from "../../../components/ui/button/Button";
 
 import Badge from "../../../components/ui/badge/Badge";
+import { useNavigate } from "react-router";
+import { PlusIcon, PencilIcon, TrashBinIcon } from "../../../icons";
 
 const UsersPage = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const navigate = useNavigate();
   useEffect(() => {
     loadUsers();
   }, []);
@@ -35,6 +38,23 @@ const UsersPage = () => {
     }
   };
 
+  const handleCreate = () => {
+    navigate("/users/create");
+  };
+  
+  const handleEdit = (id: number) => {
+    navigate(`/users/edit/${id}`);
+  };
+
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteUser(id);
+      loadUsers();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <>
       <PageMeta
@@ -46,6 +66,17 @@ const UsersPage = () => {
 
       <div className="space-y-6">
         <ComponentCard title="Users List">
+          <div className="mb-4 flex justify-end">
+            <Button
+              onClick={handleCreate}
+              variant="primary"
+              size="md"
+            >
+                <PlusIcon />
+              Add New User
+            </Button>
+          </div>
+
           <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
             <div className="max-w-full overflow-x-auto">
               <Table>
@@ -84,6 +115,13 @@ const UsersPage = () => {
                       className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500"
                     >
                       Status
+                    </TableCell>
+
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 text-center text-theme-xs font-medium text-gray-500"
+                    >
+                      Actions
                     </TableCell>
                   </TableRow>
                 </TableHeader>
@@ -131,6 +169,25 @@ const UsersPage = () => {
                           >
                             {user.status}
                           </Badge>
+                        </TableCell>
+
+                        <TableCell className="px-5 py-4">
+                          <div className="flex justify-center gap-2">
+                            <Button
+                              onClick={() => handleEdit(user.id)}
+                              variant="primary"
+                              size="md"
+                              >
+                              <PencilIcon />
+                            </Button>
+                            <Button
+                              onClick={() => handleDelete(user.id)}
+                              variant="danger"
+                              size="md"
+                            >
+                              <TrashBinIcon />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))

@@ -20,6 +20,8 @@ import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
 import Index from "./pages/Users/Index";
 import UsersPage from "./modules/users/pages/UsersPage";
+import AddUserPage from "./modules/users/pages/AddUserPage";
+import EditUserPage from "./modules/users/pages/EditUserPage";
 
 export default function App() {
   return (
@@ -33,6 +35,8 @@ export default function App() {
 
             {/* Users Pages */}
             <Route path="/users" element={<UsersPage />} />
+            <Route path="/users/create" element={<AddUserPage />} />
+            <Route path="/users/edit/:id" element={<EditUserPage />} />
             {/* Others Page */}
             <Route path="/profile" element={<UserProfiles />} />
             <Route path="/calendar" element={<Calendar />} />
