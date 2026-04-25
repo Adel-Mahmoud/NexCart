@@ -68,7 +68,6 @@ const EditUserPage = () => {
     setError(null);
     try {
       if (id) {
-        console.log(form)
         await updateUser(Number(id), form);
         navigate("/users");
       }

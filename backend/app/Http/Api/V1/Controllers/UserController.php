@@ -40,6 +40,10 @@ class UserController extends Controller
     public function update(int $id, UpdateUserRequest $request, UserRepository $repository)
     {
         $dto = UpdateUserDTO::fromArray($request->validated());
+        $repository->update($id, $dto->toArray());
+        $updatedUser = $repository->find($id);
+
+        return new UserResource($updatedUser);
     }
 
     public function destroy(int $id, UserRepository $repository)
