@@ -3,6 +3,7 @@
 namespace App\Domains\Users\Repositories;
 
 use App\Domains\Users\Models\User;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class UserRepository
 {
@@ -16,18 +17,27 @@ class UserRepository
         return User::query()->find($id);
     }
 
-    public function all()
+    public function all(?int $perPage = null): LengthAwarePaginator
     {
-        return User::query()->latest()->paginate(10);
+        $perPage = $perPage ?? request()->integer('per_page', 1);
+
+        return User::query()
+            ->latest()
+            ->paginate($perPage)
+            ->withQueryString();
     }
 
     public function update(int $id, array $data): bool
     {
-        return User::query()->where('id', $id)->update($data);
-    }  
+        return User::query()
+            ->where('id', $id)
+            ->update($data);
+    }
 
     public function delete(int $id): bool
     {
-        return User::query()->where('id', $id)->delete();
+        return User::query()
+            ->where('id', $id)
+            ->delete();
     }
 }

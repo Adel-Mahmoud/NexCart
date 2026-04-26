@@ -1,9 +1,25 @@
 import http from "../../../shared/services/http";
-import { User, CreateUserInput, UpdateUserInput } from "../types/user.types";
+import { User, CreateUserInput, UpdateUserInput, PaginationMeta } from "../types/user.types";
 
-export const getUsers = async (): Promise<User[]> => {
-  const response = await http.get("/users");
-  return response.data.data;
+export const getUsers = async (page = 1, search = "", status = "all"): Promise<{ data: User[]; meta: PaginationMeta }> => {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    per_page: "2",
+    ...(search && { search }),
+    ...(status !== "all" && { status }),
+  });
+  
+  const response = await http.get(`/users?${params}`);
+  
+  return {
+    data: response.data.data,
+    meta: response.data.meta || {
+      current_page: page,
+      last_page: 1,
+      per_page: 10,
+      total: response.data.data.length
+    }
+  };
 };
 
 export const getUser = async (id: number): Promise<User> => {

@@ -8,6 +8,7 @@ use App\Domains\Users\Requests\UpdateUserRequest;
 use App\Domains\Users\DTOs\CreateUserDTO;
 use App\Domains\Users\DTOs\UpdateUserDTO;
 use App\Domains\Users\Actions\CreateUserAction;
+use App\Domains\Users\Resources\UserCollection;
 use App\Domains\Users\Resources\UserResource;
 use App\Domains\Users\Repositories\UserRepository;
  
@@ -15,7 +16,7 @@ class UserController extends Controller
 {
     public function index(UserRepository $repository)
     {
-        return UserResource::collection($repository->all());
+        return new UserCollection($repository->all());
     }
 
     public function store(
@@ -53,8 +54,3 @@ class UserController extends Controller
         return response()->noContent();
     }
 }
-
-
-// http://localhost:8000/api/v1/users
-// http://localhost:8000/api/v1/users/1
-// http://localhost:8000/api/v1/users/1
