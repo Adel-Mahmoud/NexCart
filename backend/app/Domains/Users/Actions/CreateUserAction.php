@@ -19,7 +19,7 @@ class CreateUserAction
             'email' => $dto->email,
             'phone' => $dto->phone,
             'password' => Hash::make($dto->password),
-            'status' => 'active',
+            'status' => $dto->status,
         ]);
     }
 }

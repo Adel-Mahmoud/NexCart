@@ -1,6 +1,4 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router";
-import SignIn from "./pages/AuthPages/SignIn";
-import SignUp from "./pages/AuthPages/SignUp";
 import NotFound from "./pages/OtherPage/NotFound";
 import UserProfiles from "./pages/UserProfiles";
 import Videos from "./pages/UiElements/Videos";
@@ -18,14 +16,17 @@ import Blank from "./pages/Blank";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
-import Index from "./pages/Users/Index";
 import UsersPage from "./modules/users/pages/UsersPage";
 import AddUserPage from "./modules/users/pages/AddUserPage";
 import EditUserPage from "./modules/users/pages/EditUserPage";
+import { Toaster } from "react-hot-toast";
+import LoginPage from "./modules/auth/pages/LoginPage";
+import RegisterPage from "./modules/auth/pages/RegisterPage";
 
 export default function App() {
   return (
     <>
+      <Toaster />
       <Router>
         <ScrollToTop />
         <Routes>
@@ -61,9 +62,9 @@ export default function App() {
             <Route path="/bar-chart" element={<BarChart />} />
           </Route>
 
-          {/* Auth Layout */}
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} />
+          {/* Auth Pages */}
+          <Route path="/signin" element={<LoginPage />} />
+          <Route path="/signup" element={<RegisterPage />} />
 
           {/* Fallback Route */}
           <Route path="*" element={<NotFound />} />

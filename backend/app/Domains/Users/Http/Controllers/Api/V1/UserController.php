@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Http\Api\V1\Controllers;
+namespace App\Domains\Users\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Domains\Users\Requests\StoreUserRequest;
-use App\Domains\Users\Requests\UpdateUserRequest;
+use App\Domains\Users\Http\Requests\StoreUserRequest;
+use App\Domains\Users\Http\Requests\UpdateUserRequest;
 use App\Domains\Users\DTOs\CreateUserDTO;
 use App\Domains\Users\DTOs\UpdateUserDTO;
 use App\Domains\Users\Actions\CreateUserAction;
-use App\Domains\Users\Resources\UserCollection;
-use App\Domains\Users\Resources\UserResource;
+use App\Domains\Users\Http\Resources\UserCollection;
+use App\Domains\Users\Http\Resources\UserResource;
 use App\Domains\Users\Repositories\UserRepository;
  
 class UserController extends Controller

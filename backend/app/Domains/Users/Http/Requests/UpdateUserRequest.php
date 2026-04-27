@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domains\Users\Requests;
+namespace App\Domains\Users\Http\Requests;
 use Illuminate\Validation\Rule;
 
 use Illuminate\Foundation\Http\FormRequest;
@@ -32,6 +32,7 @@ class UpdateUserRequest extends FormRequest
             ],
 
             'phone' => ['nullable', 'string', 'max:20'],
+            'status' => ['required','in:active,inactive'],
         ];
     }
 }

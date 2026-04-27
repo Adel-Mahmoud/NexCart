@@ -1,10 +1,10 @@
 <?php
-
-namespace App\Domains\Users\Requests;
+namespace App\Domains\Auth\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Domains\Auth\DTOs\RegisterDTO;
 
-class StoreUserRequest extends FormRequest
+class RegisterRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -17,7 +17,15 @@ class StoreUserRequest extends FormRequest
             'name' => ['required','string','max:255'],
             'email' => ['required','email','unique:users,email'],
             'password' => ['required','min:6'],
-            'phone' => ['nullable','string'],
         ];
+    }
+
+    public function dto(): RegisterDTO
+    {
+        return new RegisterDTO(
+            $this->name,
+            $this->email,
+            $this->password
+        );
     }
 }

@@ -9,6 +9,7 @@ class CreateUserDTO
         public readonly string $email,
         public readonly string $password,
         public readonly ?string $phone = null,
+        public readonly ?string $status = null,
     ) {}
 
     public static function fromArray(array $data): self
@@ -18,6 +19,7 @@ class CreateUserDTO
             email: $data['email'],
             password: $data['password'],
             phone: $data['phone'] ?? null,
+            status: $data['status'] ?? null,
         );
     }
 }

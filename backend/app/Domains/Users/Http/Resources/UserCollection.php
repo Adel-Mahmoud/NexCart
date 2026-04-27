@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Domains\Users\Resources;
+namespace App\Domains\Users\Http\Resources;
 
-use App\Domains\Users\Resources\UserResource;
+use App\Domains\Users\Http\Resources\UserResource;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
 class UserCollection extends ResourceCollection
@@ -18,9 +18,9 @@ class UserCollection extends ResourceCollection
     {
         return [
             'meta' => [
-                'current_page' => $paginated['current_page'],
-                'last_page' => $paginated['last_page'],
-                'per_page' => $paginated['per_page'],
+                'currentPage' => $paginated['current_page'],
+                'lastPage' => $paginated['last_page'],
+                'perPage' => $paginated['per_page'],
                 'total' => $paginated['total'],
             ],
             'links' => $default['links'],

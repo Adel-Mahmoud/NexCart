@@ -26,6 +26,10 @@ class DomainServiceProvider extends ServiceProvider
                 $this->loadRoutesFrom("$domainPath/Routes/web.php");
             }
 
+            if (File::exists("$domainPath/Routes/api.php")) {
+                $this->loadRoutesFrom("$domainPath/Routes/api.php");
+            }
+
             if (File::exists("$domainPath/Routes/admin.php")) {
                 $this->loadRoutesFrom("$domainPath/Routes/admin.php");
             }

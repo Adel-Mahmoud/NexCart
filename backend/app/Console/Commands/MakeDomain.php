@@ -8,375 +8,383 @@ use Illuminate\Support\Str;
 
 class MakeDomain extends Command
 {
-    protected $signature = 'make:domain {name : The name of the domain}
-                            {--table : Generate migration table}
-                            {--policy : Generate policy class}
-                            {--repository : Generate repository class}
-                            {--livewire : Generate livewire class}
-                            {--request : Generate request class}
-                            {--all : Generate all optional classes (migration, policy, repository, request, livewire)}';
+    protected $signature = 'make:domain
+        {name}
+        {--all}
+        {--api}';
 
-    protected $description = 'Create a new domain structure';
+    protected $description = 'Generate a full Domain (DDD structure)';
 
     public function handle(): void
     {
         $name = Str::pluralStudly($this->argument('name'));
-        $className = Str::studly(Str::singular($this->argument('name')));
+        $singular = Str::studly(Str::singular($this->argument('name')));
         $domainPath = app_path("Domains/{$name}");
 
-        $this->createDirectoryStructure($domainPath);
-        $this->createModel($domainPath, $name, $className);
-        $this->createControllers($domainPath, $name, $className);
-        $this->createRoutes($domainPath, $name, $className);
-        $this->createViews($domainPath, $name);
-        $this->createOptionalClasses($domainPath, $name, $className);
+        $isApi = $this->option('api');
+        $isAll = $this->option('all');
+
+        $this->createStructure($domainPath, $isApi);
+
+        $this->createModel($domainPath, $name, $singular);
+
+        $this->createControllers($domainPath, $name, $singular, $isApi);
+
+        $this->createRoutes($domainPath, $name, $singular, $isApi);
+
+        $this->createCoreLayers($domainPath, $name, $singular);
+
+        if (!$isApi) {
+            $this->createViews($domainPath, $name);
+            $this->createLivewire($domainPath, $name, $singular);
+        }
+
+        if ($isAll || $isApi) {
+            $this->createDatabase($domainPath, $name);
+            $this->createResources($domainPath, $name, $singular);
+            $this->createRequests($domainPath, $name, $singular);
+            $this->createActions($domainPath, $name, $singular);
+            $this->createDTOs($domainPath, $name, $singular);
+            $this->createRepository($domainPath, $name, $singular);
+            $this->createPolicy($domainPath, $name, $singular);
+        }
 
         $this->info("Domain {$name} created successfully.");
     }
 
-    private function createDirectoryStructure(string $domainPath): void
+    // =========================
+    // STRUCTURE
+    // =========================
+
+    private function createStructure(string $path, bool $api): void
     {
-        $directories = [
-            "{$domainPath}/Models",
-            "{$domainPath}/Controllers/Web",
-            "{$domainPath}/Controllers/Admin",
-            "{$domainPath}/Routes",
-            "{$domainPath}/Views/web",
-            "{$domainPath}/Views/admin",
-            "{$domainPath}/Database/Migrations",
+        $dirs = [
+            "{$path}/Models",
+            "{$path}/Actions",
+            "{$path}/DTOs",
+            "{$path}/Repositories",
+            "{$path}/Policies",
+
+            "{$path}/Http/Requests",
+            "{$path}/Http/Resources",
+
+            "{$path}/Http/Controllers/Api/V1",
+            "{$path}/Database/Migrations",
+            "{$path}/Routes",
         ];
 
-        foreach ($directories as $dir) {
+        if (!$api) {
+            $dirs[] = "{$path}/Http/Controllers/Web";
+            $dirs[] = "{$path}/Http/Controllers/Admin";
+            $dirs[] = "{$path}/Views/web";
+            $dirs[] = "{$path}/Views/admin";
+            $dirs[] = "{$path}/Views/livewire";
+            $dirs[] = "{$path}/Livewire";
+        }
+
+        foreach ($dirs as $dir) {
             File::ensureDirectoryExists($dir);
         }
     }
 
-    private function createModel(string $domainPath, string $name, string $className): void
-    {
-        $modelPath = "{$domainPath}/Models/{$className}.php";
+    // =========================
+    // MODEL
+    // =========================
 
-        if (!File::exists($modelPath)) {
-            File::put($modelPath, $this->getModelStub($name, $className));
-            $this->info("Model created: {$modelPath}");
-        }
+    private function createModel($path, $name, $class): void
+    {
+        File::put("{$path}/Models/{$class}.php", <<<PHP
+<?php
+
+namespace App\Domains\\{$name}\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class {$class} extends Model
+{
+    protected \$guarded = [];
+}
+PHP);
     }
 
-    private function createControllers(string $domainPath, string $name, string $className): void
-    {
-        File::put(
-            "{$domainPath}/Controllers/Web/{$className}Controller.php",
-            $this->getControllerStub($name, $className, 'Web')
-        );
+    // =========================
+    // CONTROLLERS
+    // =========================
 
-        File::put(
-            "{$domainPath}/Controllers/Admin/{$className}Controller.php",
-            $this->getControllerStub($name, $className, 'Admin')
-        );
+    private function createControllers($path, $name, $class, $api): void
+    {
+        if ($api) {
+            File::put("{$path}/Http/Controllers/Api/V1/{$class}Controller.php", <<<PHP
+<?php
+
+namespace App\Domains\\{$name}\Http\Controllers\Api\V1;
+
+use App\Http\Controllers\Controller;
+
+class {$class}Controller extends Controller
+{
+    public function index()
+    {
+        return response()->json(['message' => '{$class} API']);
+    }
+}
+PHP);
+            return;
+        }
+
+        File::put("{$path}/Http/Controllers/Web/{$class}Controller.php", <<<PHP
+<?php
+
+namespace App\Domains\\{$name}\Http\Controllers\Web;
+
+use App\Http\Controllers\Controller;
+
+class {$class}Controller extends Controller
+{
+    public function index()
+    {
+        return view('domains.{$name}::web.index');
+    }
+}
+PHP);
+
+        File::put("{$path}/Http/Controllers/Admin/{$class}Controller.php", <<<PHP
+<?php
+
+namespace App\Domains\\{$name}\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+
+class {$class}Controller extends Controller
+{
+    public function index()
+    {
+        return view('domains.{$name}::admin.index');
+    }
+}
+PHP);
     }
 
-    private function createRoutes(string $domainPath, string $name, string $className): void
+    // =========================
+    // ROUTES
+    // =========================
+
+    private function createRoutes($path, $name, $class, $api): void
     {
-        $lowercaseName = strtolower($name);
-        $webRoutes = <<<PHP
-        <?php
-        
-        use Illuminate\\Support\\Facades\\Route;
-        
-        Route::middleware('web')->prefix('{$lowercaseName}')->group(function () {
-            Route::get('/', [App\\Domains\\{$name}\\Controllers\\Web\\{$className}Controller::class, 'index']);
-        });
-        PHP;
+        if ($api) {
+            File::put("{$path}/Routes/api.php", <<<PHP
+<?php
 
-        $adminRoutes = <<<PHP
-        <?php
-        
-        use Illuminate\\Support\\Facades\\Route;
+use Illuminate\Support\Facades\Route;
+use App\Domains\\{$name}\Http\Controllers\Api\V1\\{$class}Controller;
 
-        use App\Domains\\{$name}\Controllers\Admin\\{$className}Controller;
+Route::prefix('v1')->group(function () {
+    Route::get('/{$name}', [{$class}Controller::class, 'index']);
+});
+PHP);
+            return;
+        }
 
-        Route::middleware(['web','auth.admin'])->prefix('admin')->name('admin.')->group(function () {
-            Route::resource('{$lowercaseName}', {$className}Controller::class);
-        });
-        PHP;
+        File::put("{$path}/Routes/web.php", <<<PHP
+<?php
 
-        File::put("{$domainPath}/Routes/web.php", $webRoutes);
-        File::put("{$domainPath}/Routes/admin.php", $adminRoutes);
+use Illuminate\Support\Facades\Route;
+use App\Domains\\{$name}\Http\Controllers\Web\\{$class}Controller;
+
+Route::get('/{$name}', [{$class}Controller::class, 'index']);
+PHP);
+
+        File::put("{$path}/Routes/admin.php", <<<PHP
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Domains\\{$name}\Http\Controllers\Admin\\{$class}Controller;
+
+Route::prefix('admin')->group(function () {
+    Route::get('/{$name}', [{$class}Controller::class, 'index']);
+});
+PHP);
     }
 
-    private function createViews(string $domainPath, string $name): void
+    // =========================
+    // CORE LAYERS (Actions + DTO + etc)
+    // =========================
+
+    private function createCoreLayers($path, $name, $class): void {}
+
+    private function createActions($path, $name, $class)
     {
-        File::put("{$domainPath}/Views/web/index.blade.php", "<h1>{$name} Web Index</h1>");
-        File::put("{$domainPath}/Views/admin/index.blade.php", "<h1>{$name} Admin Index</h1>");
+        File::put("{$path}/Actions/Create{$class}Action.php", <<<PHP
+<?php
+
+namespace App\Domains\\{$name}\Actions;
+
+use App\Domains\\{$name}\DTOs\Create{$class}DTO;
+use App\Domains\\{$name}\Models\\{$class};
+
+class Create{$class}Action
+{
+    public function execute(Create{$class}DTO \$dto)
+    {
+        return {$class}::create((array) \$dto);
+    }
+}
+PHP);
     }
 
-    private function createOptionalClasses(string $domainPath, string $name, string $className): void
+    private function createDTOs($path, $name, $class)
     {
+        File::put("{$path}/DTOs/Create{$class}DTO.php", <<<PHP
+<?php
 
-        $generateAll = $this->option('all');
+namespace App\Domains\\{$name}\DTOs;
 
-        if ($this->option('table') || $generateAll) {
-            $this->createMigration($domainPath, $name);
-        }
-
-        if ($this->option('policy') || $generateAll) {
-            $this->createPolicy($domainPath, $name, $className);
-        }
-
-        if ($this->option('repository') || $generateAll) {
-            $this->createRepository($domainPath, $name, $className);
-        }
-
-        if ($this->option('livewire') || $generateAll) {
-            $this->createLivewire($domainPath, $name, $className);
-        }
-
-        if ($this->option('request') || $generateAll) {
-            $this->createRequest($domainPath, $name, $className);
-        }
+class Create{$class}DTO
+{
+    public function __construct(
+        public string \$name
+    ) {}
+}
+PHP);
     }
 
-    private function createMigration(string $domainPath, string $name): void
+    private function createResources($path, $name, $class)
+    {
+        File::put("{$path}/Http/Resources/{$class}Resource.php", <<<PHP
+<?php
+
+namespace App\Domains\\{$name}\Http\Resources;
+
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class {$class}Resource extends JsonResource
+{
+    public function toArray(\$request)
+    {
+        return [
+            'id' => \$this->id,
+            'name' => \$this->name,
+        ];
+    }
+}
+PHP);
+    }
+
+    private function createRequests($path, $name, $class)
+    {
+        File::put("{$path}/Http/Requests/Store{$class}Request.php", <<<PHP
+<?php
+
+namespace App\Domains\\{$name}\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class Store{$class}Request extends FormRequest
+{
+    public function rules(): array
+    {
+        return [
+            'name' => 'required|string|max:255'
+        ];
+    }
+}
+PHP);
+    }
+
+    private function createRepository($path, $name, $class)
+    {
+        File::put("{$path}/Repositories/{$class}Repository.php", <<<PHP
+<?php
+
+namespace App\Domains\\{$name}\Repositories;
+
+use App\Domains\\{$name}\Models\\{$class};
+
+class {$class}Repository
+{
+    public function all()
+    {
+        return {$class}::all();
+    }
+}
+PHP);
+    }
+
+    private function createPolicy($path, $name, $class)
+    {
+        File::put("{$path}/Policies/{$class}Policy.php", <<<PHP
+<?php
+
+namespace App\Domains\\{$name}\Policies;
+
+class {$class}Policy
+{
+    public function view() { return true; }
+}
+PHP);
+    }
+
+    // =========================
+    // VIEWS
+    // =========================
+
+    private function createViews($path, $name)
+    {
+        File::put("{$path}/Views/web/index.blade.php", "<h1>{$name} Web</h1>");
+        File::put("{$path}/Views/admin/index.blade.php", "<h1>{$name} Admin</h1>");
+    }
+
+    private function createLivewire($path, $name, $class)
+    {
+        File::put("{$path}/Livewire/{$class}Index.php", <<<PHP
+<?php
+
+namespace App\Domains\\{$name}\Livewire;
+
+use Livewire\Component;
+
+class {$class}Index extends Component
+{
+    public function render()
+    {
+        return view('domains.{$name}::livewire.index');
+    }
+}
+PHP);
+
+        File::put("{$path}/Views/livewire/index.blade.php", "<h1>Livewire {$name}</h1>");
+    }
+
+    // =========================
+    // DATABASE
+    // =========================
+
+    private function createDatabase($path, $name)
     {
         $table = Str::snake($name);
-        $timestamp = now()->format('Y_m_d_His');
-        $migrationPath = "{$domainPath}/Database/Migrations/{$timestamp}_create_{$table}_table.php";
 
-        File::put($migrationPath, $this->getMigrationStub($table));
-        $this->info("Migration created: {$migrationPath}");
+        File::put("{$path}/Database/Migrations/" . now()->format('Y_m_d_His') . "_create_{$table}.php", <<<PHP
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    public function up()
+    {
+        Schema::create('{$table}', function (Blueprint \$table) {
+            \$table->id();
+            \$table->string('name');
+            \$table->timestamps();
+        });
     }
 
-    private function createPolicy(string $domainPath, string $name, string $className): void
+    public function down()
     {
-        $policyPath = "{$domainPath}/Policies/{$className}Policy.php";
-        File::ensureDirectoryExists(dirname($policyPath));
-        File::put($policyPath, $this->getPolicyStub($name, $className));
-        $this->info("Policy created: {$policyPath}");
+        Schema::dropIfExists('{$table}');
     }
-
-    private function createRepository(string $domainPath, string $name, string $className): void
-    {
-        $repoPath = "{$domainPath}/Repositories/{$className}Repository.php";
-        File::ensureDirectoryExists(dirname($repoPath));
-        File::put($repoPath, $this->getRepositoryStub($name, $className));
-        $this->info("Repository created: {$repoPath}");
-    }
-
-    private function createLivewire(string $domainPath, string $name, string $className): void
-    {
-        $componentClass = "{$name}";
-        $livewirePath = "{$domainPath}/Livewire";
-        File::ensureDirectoryExists($livewirePath);
-
-        $componentFile = "{$livewirePath}/{$componentClass}Index.php";
-        if (!File::exists($componentFile)) {
-            File::put($componentFile, $this->getLivewireStub($name, $className));
-            $this->info("Livewire Component created: {$componentFile}");
-        }
-
-        $viewDir = "{$domainPath}/Views/livewire";
-        File::ensureDirectoryExists($viewDir);
-
-        $bladeFile = "{$viewDir}/" . Str::kebab($name) . "-index.blade.php";
-        if (!File::exists($bladeFile)) {
-            File::put($bladeFile, "<div>\n    <h1>{$name} Livewire Component</h1>\n</div>");
-            $this->info("Livewire Blade view created: {$bladeFile}");
-        }
-    }
-
-
-    private function createRequest(string $domainPath, string $name, string $className): void
-    {
-        $requestPath = "{$domainPath}/Requests/{$className}Request.php";
-        File::ensureDirectoryExists(dirname($requestPath));
-        File::put($requestPath, $this->getRequestStub($name, $className));
-        $this->info("Request created: {$requestPath}");
-    }
-
-    protected function getModelStub(string $name, string $className): string
-    {
-        return <<<PHP
-        <?php
-
-        namespace App\\Domains\\{$name}\\Models;
-
-        use Illuminate\\Database\\Eloquent\\Model;
-
-        class {$className} extends Model
-        {
-            protected \$guarded = [];
-        }
-        PHP;
-    }
-
-    protected function getControllerStub(string $name, string $className, string $type): string
-    {
-        $viewNamespace = strtolower($name) . '::' . strtolower($type) . '.index';
-
-        return <<<PHP
-        <?php
-
-        namespace App\\Domains\\{$name}\\Controllers\\{$type};
-
-        use App\\Http\\Controllers\\Controller;
-
-        class {$className}Controller extends Controller
-        {
-            public function index()
-            {
-                return view('{$viewNamespace}');
-            }
-        }
-        PHP;
-    }
-
-    protected function getMigrationStub(string $table): string
-    {
-        return <<<PHP
-        <?php
-
-        use Illuminate\\Database\\Migrations\\Migration;
-        use Illuminate\\Database\\Schema\\Blueprint;
-        use Illuminate\\Support\\Facades\\Schema;
-
-        return new class extends Migration
-        {
-            public function up(): void
-            {
-                Schema::create('{$table}', function (Blueprint \$table) {
-                    \$table->id();
-                    \$table->string('name');
-                    \$table->timestamps();
-                });
-            }
-
-            public function down(): void
-            {
-                Schema::dropIfExists('{$table}');
-            }
-        };
-        PHP;
-    }
-
-    protected function getPolicyStub(string $name, string $className): string
-    {
-        return <<<PHP
-        <?php
-
-        namespace App\\Domains\\{$name}\\Policies;
-
-        use App\\Models\\User as AuthUser;
-        use App\\Domains\\{$name}\\Models\\{$className};
-
-        class {$className}Policy
-        {
-            public function view(AuthUser \$user, {$className} \$model): bool
-            {
-                return true;
-            }
-
-            public function create(AuthUser \$user): bool
-            {
-                return true;
-            }
-
-            public function update(AuthUser \$user, {$className} \$model): bool
-            {
-                return true;
-            }
-
-            public function delete(AuthUser \$user, {$className} \$model): bool
-            {
-                return true;
-            }
-        }
-        PHP;
-    }
-
-    protected function getRepositoryStub(string $name, string $className): string
-    {
-        return <<<PHP
-        <?php
-
-        namespace App\\Domains\\{$name}\\Repositories;
-
-        use App\\Domains\\{$name}\\Models\\{$className};
-
-        class {$className}Repository
-        {
-            public function all()
-            {
-                return {$className}::all();
-            }
-
-            public function find(\$id)
-            {
-                return {$className}::find(\$id);
-            }
-
-            public function create(array \$data)
-            {
-                return {$className}::create(\$data);
-            }
-
-            public function update(\$id, array \$data)
-            {
-                \$model = {$className}::findOrFail(\$id);
-                \$model->update(\$data);
-                return \$model;
-            }
-
-            public function delete(\$id)
-            {
-                return {$className}::destroy(\$id);
-            }
-        }
-        PHP;
-    }
-
-    protected function getRequestStub(string $name, string $className): string
-    {
-        return <<<PHP
-        <?php
-
-        namespace App\\Domains\\{$name}\\Requests;
-
-        use Illuminate\\Foundation\\Http\\FormRequest;
-
-        class {$className}Request extends FormRequest
-        {
-            public function authorize(): bool
-            {
-                return true;
-            }
-
-            public function rules(): array
-            {
-                return [
-                    'name' => 'required|string|max:255',
-                ];
-            }
-        }
-        PHP;
-    }
-
-    protected function getLivewireStub(string $name, string $className): string
-    {
-        $viewFile = strtolower($name) . '-index';
-
-        return <<<PHP
-    <?php
-
-    namespace App\\Domains\\{$name}\\Livewire;
-
-    use Livewire\\Component;
-
-    class {$name}Index extends Component
-    {
-        public function render()
-        {
-            return view('domains.{$name}.livewire.{$viewFile}');
-        }
-    }
-    PHP;
+};
+PHP);
     }
 }
