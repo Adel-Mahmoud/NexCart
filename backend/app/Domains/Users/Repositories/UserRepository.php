@@ -17,11 +17,28 @@ class UserRepository
         return User::query()->find($id);
     }
 
-    public function all(?int $perPage = null): LengthAwarePaginator
+    public function all(?int $perPage = null,string $search = null): LengthAwarePaginator
     {
-        $perPage = $perPage ?? request()->integer('per_page', 1);
+        $perPage = $perPage ?? request()->integer('per_page', 10);
 
-        return User::query()
+        $search = request('search');
+        $status = request('status');
+
+        $query = User::query();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+
+        if ($status && $status !== 'all') {
+            $query->where('status', $status);
+        }
+
+        return $query
             ->latest()
             ->paginate($perPage)
             ->withQueryString();

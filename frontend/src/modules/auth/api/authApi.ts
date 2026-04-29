@@ -1,42 +1,25 @@
 import http from "../../../shared/services/http";
-import { User, CreateUserInput, UpdateUserInput, PaginationMeta } from "../types/user.types";
+import { LoginPayload, RegisterPayload, AuthResponse } from "../types/auth.types";
 
-export const getUsers = async (page = 1, search = "", status = "all"): Promise<{ data: User[]; meta: PaginationMeta }> => {
-  const params = new URLSearchParams({
-    page: page.toString(),
-    per_page: "10",
-    ...(search && { search }),
-    ...(status !== "all" && { status }),
+export const login = async (data: LoginPayload): Promise<AuthResponse> => {
+  const res = await http.post("/auth/login", data);
+  return res.data;
+};
+
+export const register = async (data: RegisterPayload) => {
+  const response = await http.post("/auth/register", {
+    ...data,
+    password_confirmation: data.password,
   });
-  
-  const response = await http.get(`/users?${params}`);
-  
-  return {
-    data: response.data.data,
-    meta: response.data.meta 
-  };
+
+  return response.data;
+};
+export const getMe = async () => {
+  const res = await http.get("/auth/me");
+  return res.data;
 };
 
-export const getUser = async (id: number): Promise<User> => {
-  const response = await http.get(`/users/${id}`);
-  return response.data.data;
-};
-
-export const createUser = async (
-  data: CreateUserInput
-): Promise<User> => {
-  const response = await http.post("/users", data);
-  return response.data.data;
-};
-
-export const updateUser = async (
-  id: number,
-  data: UpdateUserInput
-): Promise<User> => {
-  const response = await http.put(`/users/${id}`, data);
-  return response.data.data;
-};
-
-export const deleteUser = async (id: number): Promise<void> => {
-  await http.delete(`/users/${id}`);
+export const logout = async () => {
+  const res = await http.post("/auth/logout");
+  return res.data;
 };

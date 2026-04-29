@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import { Link } from "react-router";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router";
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../../icons";
 import Label from "../../../components/form/Label";
 import Input from "../../../components/form/input/InputField";
@@ -8,10 +8,51 @@ import Checkbox from "../../../components/form/input/Checkbox";
 import Button from "../../../components/ui/button/Button";
 import PageMeta from "../../../components/common/PageMeta";
 import AuthLayout from "../../../pages/AuthPages/AuthPageLayout";
+import { login } from "../api/authApi";
+import { authService } from "../../../shared/services/authService";
 
-export default function SignInForm() {
+
+export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const navigate = useNavigate();
+
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
+
+  useEffect(() => {
+    const token = authService.getToken();
+  
+    if (token) {
+      navigate("/", { replace: true });
+    }
+  }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+  
+    setLoading(true);
+    setError("");
+  
+    try {
+      const res = await login({
+        email,
+        password,
+      });
+  
+      authService.setSession(res.token, res.user);
+  
+      navigate("/");
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Invalid email or password");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       <PageMeta
@@ -92,13 +133,22 @@ export default function SignInForm() {
                     </span>
                   </div>
                 </div>
-                <form>
+                {error && (
+                  <div className="text-red-500 text-sm text-center mt-3">
+                    {error}
+                  </div>
+                )}
+                <form onSubmit={handleLogin}>
                   <div className="space-y-6">
                     <div>
                       <Label>
                         Email <span className="text-error-500">*</span>{" "}
                       </Label>
-                      <Input placeholder="info@gmail.com" />
+                      <Input
+                        placeholder="info@gmail.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
                     </div>
                     <div>
                       <Label>
@@ -108,6 +158,8 @@ export default function SignInForm() {
                         <Input
                           type={showPassword ? "text" : "password"}
                           placeholder="Enter your password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
                         />
                         <span
                           onClick={() => setShowPassword(!showPassword)}
@@ -136,9 +188,9 @@ export default function SignInForm() {
                       </Link>
                     </div>
                     <div>
-                      <Button className="w-full" size="sm">
-                        Sign in
-                      </Button>
+                    <Button className="w-full" size="sm" disabled={loading}>
+                      {loading ? "Signing in..." : "Sign in"}
+                    </Button>
                     </div>
                   </div>
                 </form>
@@ -147,7 +199,7 @@ export default function SignInForm() {
                   <p className="text-sm font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">
                     Don&apos;t have an account? {""}
                     <Link
-                      to="/signup"
+                      to="/register"
                       className="text-brand-500 hover:text-brand-600 dark:text-brand-400"
                     >
                       Sign Up

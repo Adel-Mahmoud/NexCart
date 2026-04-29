@@ -4,7 +4,7 @@ import { User, CreateUserInput, UpdateUserInput, PaginationMeta } from "../types
 export const getUsers = async (page = 1, search = "", status = "all"): Promise<{ data: User[]; meta: PaginationMeta }> => {
   const params = new URLSearchParams({
     page: page.toString(),
-    per_page: "10",
+    per_page: "2",
     ...(search && { search }),
     ...(status !== "all" && { status }),
   });

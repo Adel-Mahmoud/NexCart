@@ -1,30 +1,21 @@
 export interface User {
-    id: number;
-    name: string;
-    email: string;
-    phone?: string;
-    status: "active" | "inactive";
-  }
-  
-  export interface CreateUserInput {
-    name: string;
-    email: string;
-    password: string;
-    phone?: string;
-    status?: "active" | "inactive";
-  }
-  
-  export interface UpdateUserInput {
-    name?: string;
-    email?: string;
-    password?: string;
-    phone?: string;
-    status?: "active" | "inactive";
-  }
+  id: number;
+  name: string;
+  email: string;
+}
 
-  export interface PaginationMeta {
-    currentPage: number;
-    perPage: number;
-    total: number;
-    lastPage: number;
-  }
+export interface AuthResponse {
+  user: User;
+  token: string;
+}
+
+export interface LoginPayload {
+  email: string;
+  password: string;
+}
+
+export interface RegisterPayload {
+  name: string;
+  email: string;
+  password: string;
+}

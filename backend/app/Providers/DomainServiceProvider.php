@@ -21,7 +21,6 @@ class DomainServiceProvider extends ServiceProvider
         foreach (File::directories($domainsPath) as $domainPath) {
             $domainName = basename($domainPath);
 
-            // تحميل الـ routes
             if (File::exists("$domainPath/Routes/web.php")) {
                 $this->loadRoutesFrom("$domainPath/Routes/web.php");
             }
@@ -34,17 +33,14 @@ class DomainServiceProvider extends ServiceProvider
                 $this->loadRoutesFrom("$domainPath/Routes/admin.php");
             }
 
-            // تحميل الـ views
             if (File::isDirectory("$domainPath/Views")) {
                 $this->loadViewsFrom("$domainPath/Views", strtolower($domainName));
             }
 
-            // تحميل الـ migrations
             if (File::isDirectory("$domainPath/Database/Migrations")) {
                 $this->loadMigrationsFrom("$domainPath/Database/Migrations");
             }
 
-            // تسجيل Livewire Components
             $this->registerLivewireComponents($domainPath, $domainName);
         }
     }

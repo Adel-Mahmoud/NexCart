@@ -22,6 +22,7 @@ import EditUserPage from "./modules/users/pages/EditUserPage";
 import { Toaster } from "react-hot-toast";
 import LoginPage from "./modules/auth/pages/LoginPage";
 import RegisterPage from "./modules/auth/pages/RegisterPage";
+import ProtectedRoute from "./shared/routes/ProtectedRoute"
 
 export default function App() {
   return (
@@ -30,9 +31,14 @@ export default function App() {
       <Router>
         <ScrollToTop />
         <Routes>
+          {/* Auth Pages */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
           {/* Dashboard Layout */}
           <Route element={<AppLayout />}>
-            <Route index path="/" element={<Home />} />
+            <Route element={<ProtectedRoute />}>
+              <Route index path="/" element={<Home />} />
+            </Route>
 
             {/* Users Pages */}
             <Route path="/users" element={<UsersPage />} />
@@ -61,10 +67,6 @@ export default function App() {
             <Route path="/line-chart" element={<LineChart />} />
             <Route path="/bar-chart" element={<BarChart />} />
           </Route>
-
-          {/* Auth Pages */}
-          <Route path="/signin" element={<LoginPage />} />
-          <Route path="/signup" element={<RegisterPage />} />
 
           {/* Fallback Route */}
           <Route path="*" element={<NotFound />} />
