@@ -16,4 +16,4 @@ export const authService = {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
     }
-  };
+};
